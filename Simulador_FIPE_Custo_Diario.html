@@ -1,641 +1,320 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Simulador de Proteção Veicular por Placa</title>
+  <title>Simulador FIPE · Quanto custa proteger seu veículo por dia?</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Fraunces:wght@600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    :root {
-      --bg: #eef3f8;
-      --panel: rgba(255,255,255,.82);
-      --panel-strong: #ffffff;
-      --line: rgba(15, 23, 42, .10);
-      --ink: #0f172a;
-      --muted: #526076;
-      --accent: #0070f3;
-      --accent-2: #00b48f;
-      --accent-3: #101827;
-      --warn: #b45309;
-      --danger: #b91c1c;
-      --shadow: 0 28px 80px rgba(15,23,42,.12);
-      --radius: 24px;
+    :root{
+      --dark:#2B2A3A;
+      --dark-2:#1E1D29;
+      --blue:#004B97;
+      --teal:#009E80;
+      --gradient: linear-gradient(135deg, var(--blue) 0%, var(--teal) 100%);
+      --page:#F3F4F6;
+      --ink:#20242C;
+      --muted:#626C77;
+      --line:#E2E5EA;
+      --card:#FFFFFF;
+      --danger:#C0392B;
+      --radius:16px;
     }
-
-    * { box-sizing: border-box; }
-    html, body { margin: 0; min-height: 100%; }
-    body {
-      font-family: Inter, system-ui, sans-serif;
+    @media (prefers-reduced-motion: reduce){ *{ animation-duration:.001ms !important; transition-duration:.001ms !important; } }
+    *{ box-sizing:border-box; }
+    html,body{ margin:0; padding:0; }
+    body{
+      font-family:'Inter', -apple-system, sans-serif;
+      background: var(--page);
       color: var(--ink);
-      background:
-        radial-gradient(circle at top left, rgba(0,112,243,.16), transparent 34%),
-        radial-gradient(circle at top right, rgba(0,180,143,.14), transparent 28%),
-        linear-gradient(180deg, #f7fbff 0%, #eef3f8 100%);
+      min-height:100vh;
+      display:flex;
+      justify-content:center;
+      padding: 28px 16px 60px;
     }
-
-    .shell {
-      max-width: 1180px;
+    .frame{ width:100%; max-width:480px; }
+    .card{ background:var(--card); border-radius:var(--radius); border:1px solid var(--line); box-shadow:0 18px 40px -22px rgba(20,25,40,.35); overflow:hidden; }
+    .card-header{ background: var(--dark); padding: 22px 20px 18px; text-align:center; }
+    .logo{
+      width: 180px;
+      max-width: 70%;
       margin: 0 auto;
-      padding: 28px 18px 48px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      color:#fff;
+      font-family:'Poppins',sans-serif;
+      font-weight:800;
+      letter-spacing:.02em;
+      text-transform:lowercase;
     }
-
-    .hero {
-      display: grid;
-      grid-template-columns: 1.1fr .9fr;
-      gap: 22px;
-      align-items: stretch;
+    .logo-mark{
+      width:34px;height:34px;border-radius:50%;
+      background: var(--gradient);
+      box-shadow:0 0 0 5px rgba(255,255,255,.06) inset;
     }
-
-    .card {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      backdrop-filter: blur(18px);
-      box-shadow: var(--shadow);
-      border-radius: var(--radius);
+    .logo span{ display:block; line-height:1; }
+    .logo small{ display:block; font-size:9px; letter-spacing:.22em; opacity:.75; margin-top:2px; }
+    .progress{ display:flex; gap:6px; padding: 14px 22px 0; }
+    .progress .seg{ flex:1; height:4px; border-radius:3px; background: var(--line); overflow:hidden; }
+    .progress .seg i{ display:block; height:100%; width:0%; background: var(--gradient); transition: width .4s ease; }
+    .progress .seg.done i{ width:100%; }
+    .card-body{ padding: 20px 22px 24px; }
+    .eyebrow{ font-family:'Poppins',sans-serif; font-weight:700; font-size:10.5px; letter-spacing:2px; color:var(--teal); margin-bottom:10px; }
+    h1{ font-family:'Poppins',sans-serif; font-weight:800; font-size:22px; line-height:1.22; color:var(--dark); margin:0 0 8px; }
+    h2{ font-family:'Poppins',sans-serif; font-weight:700; font-size:19px; line-height:1.26; color:var(--dark); margin:0 0 14px; }
+    p.lead{ font-size:13.5px; line-height:1.55; color:var(--muted); margin:0 0 20px; }
+    .field{ margin-bottom:14px; }
+    .field label{ display:block; font-size:12px; font-weight:600; color:var(--dark); margin-bottom:6px; }
+    .field input{
+      width:100%; border:1.5px solid var(--line); border-radius:10px; padding:12px 13px;
+      font-size:14px; font-family:'Inter',sans-serif; color:var(--ink); background:#fff;
+      appearance:none; -webkit-appearance:none;
     }
-
-    .intro {
-      padding: 32px;
-      min-height: 100%;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .intro::after {
-      content: '';
-      position: absolute;
-      inset: auto -12% -40% auto;
-      width: 260px;
-      height: 260px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(0,180,143,.22), transparent 62%);
-      pointer-events: none;
-    }
-
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 14px;
-      border-radius: 999px;
-      background: rgba(15,23,42,.06);
-      font-size: .82rem;
-      font-weight: 700;
-      color: var(--accent-3);
-      letter-spacing: .03em;
-    }
-
-    h1 {
-      font-family: Fraunces, Georgia, serif;
-      font-size: clamp(2.4rem, 5vw, 4.5rem);
-      line-height: .95;
-      margin: 18px 0 14px;
-      letter-spacing: -.03em;
-    }
-
-    .lead {
-      max-width: 62ch;
-      color: var(--muted);
-      line-height: 1.75;
-      font-size: 1.02rem;
-      margin: 0;
-    }
-
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 14px;
-      margin-top: 28px;
-    }
-
-    .stat {
-      padding: 16px;
-      border-radius: 18px;
-      background: rgba(255,255,255,.7);
-      border: 1px solid rgba(15,23,42,.08);
-    }
-
-    .stat strong { display: block; margin-bottom: 6px; font-size: 1rem; }
-    .stat span { color: var(--muted); font-size: .92rem; line-height: 1.5; }
-
-    .panel {
-      padding: 24px;
-      display: grid;
-      gap: 16px;
-    }
-
-    .config, .lookup, .result, .plans {
-      background: rgba(255,255,255,.72);
-      border: 1px solid rgba(15,23,42,.08);
-      border-radius: 20px;
-      padding: 18px;
-    }
-
-    .section-title {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 14px;
-    }
-
-    .section-title h2, .section-title h3 {
-      margin: 0;
-      font-size: 1rem;
-      letter-spacing: -.01em;
-    }
-
-    .pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 12px;
-      border-radius: 999px;
-      font-size: .82rem;
-      font-weight: 700;
-      background: rgba(0, 180, 143, .12);
-      color: #0f766e;
-    }
-
-    .pill.warn { background: rgba(180, 83, 9, .10); color: var(--warn); }
-    .pill.danger { background: rgba(185, 28, 28, .10); color: var(--danger); }
-
-    .field { display: grid; gap: 8px; }
-    .field label { font-size: .9rem; font-weight: 700; color: var(--accent-3); }
-    .field input {
-      width: 100%;
-      border: 1px solid rgba(15,23,42,.12);
-      border-radius: 14px;
-      padding: 14px 16px;
-      font-size: 1rem;
-      background: #fff;
-      color: var(--ink);
-      outline: none;
-    }
-    .field input:focus {
-      border-color: rgba(0,112,243,.55);
-      box-shadow: 0 0 0 4px rgba(0,112,243,.10);
-    }
-
-    .row {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 12px;
-      align-items: end;
-    }
-
-    .actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 14px;
-    }
-
-    button {
-      border: 0;
-      border-radius: 14px;
-      padding: 14px 18px;
-      font-size: .98rem;
-      font-weight: 800;
-      cursor: pointer;
-      transition: transform .15s ease, filter .15s ease, opacity .15s ease;
-    }
-    button:hover { transform: translateY(-1px); }
-    button:disabled { cursor: not-allowed; opacity: .72; transform: none; }
-
-    .primary {
-      color: #fff;
-      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
-      box-shadow: 0 16px 30px rgba(0,112,243,.18);
-    }
-    .ghost {
-      color: var(--accent-3);
-      background: rgba(15,23,42,.06);
-    }
-
-    .hint {
-      margin-top: 10px;
-      color: var(--muted);
-      font-size: .88rem;
-      line-height: 1.55;
-    }
-
-    .lookup {
-      display: grid;
-      gap: 14px;
-    }
-
-    .summary {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 12px;
-    }
-
-    .metric {
-      background: rgba(15,23,42,.04);
-      border: 1px solid rgba(15,23,42,.06);
-      border-radius: 16px;
-      padding: 14px;
-      min-height: 96px;
-    }
-    .metric .label {
-      display: block;
-      font-size: .78rem;
-      text-transform: uppercase;
-      letter-spacing: .10em;
-      color: var(--muted);
-      margin-bottom: 8px;
-    }
-    .metric .value {
-      font-size: 1.03rem;
-      font-weight: 800;
-      line-height: 1.35;
-    }
-
-    .placeholder {
-      padding: 16px;
-      border-radius: 16px;
-      border: 1px dashed rgba(15,23,42,.18);
-      color: var(--muted);
-      background: rgba(255,255,255,.56);
-      line-height: 1.6;
-    }
-
-    .result {
-      display: none;
-      background: linear-gradient(180deg, rgba(15,23,42,.98), rgba(15,23,42,.90));
-      color: #fff;
-      border: 0;
-      box-shadow: 0 22px 52px rgba(15,23,42,.26);
-    }
-    .result.show { display: block; }
-    .result .section-title { margin-bottom: 16px; }
-    .result .pill { background: rgba(255,255,255,.10); color: #d8f9ef; }
-    .result .value-big {
-      font-size: clamp(2.2rem, 5vw, 3.8rem);
-      font-weight: 900;
-      letter-spacing: -.04em;
-      line-height: 1;
-      margin: 4px 0 12px;
-    }
-    .result .sub {
-      color: rgba(255,255,255,.78);
-      line-height: 1.6;
-    }
-    .result .note {
-      margin-top: 14px;
-      padding: 14px 16px;
-      border-radius: 16px;
-      background: rgba(255,255,255,.08);
-      color: rgba(255,255,255,.90);
-    }
-
-    .plans-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 12px;
-    }
-
-    .plan {
-      background: rgba(255,255,255,.76);
-      border: 1px solid rgba(15,23,42,.08);
-      border-radius: 18px;
-      padding: 16px;
-    }
-    .plan.featured {
-      border-color: rgba(0,112,243,.28);
-      box-shadow: 0 18px 28px rgba(0,112,243,.09);
-    }
-    .plan h4 { margin: 0 0 10px; font-size: 1rem; }
-    .plan .price { font-size: 1.5rem; font-weight: 900; color: var(--accent); margin-bottom: 8px; }
-    .plan ul { margin: 12px 0 0; padding-left: 18px; color: var(--muted); line-height: 1.6; }
-
-    .footer {
-      margin-top: 14px;
-      color: var(--muted);
-      font-size: .86rem;
-      line-height: 1.5;
-    }
-
-    @media (max-width: 960px) {
-      .hero { grid-template-columns: 1fr; }
-      .stats, .summary, .plans-grid { grid-template-columns: 1fr; }
-      .row { grid-template-columns: 1fr; }
+    .field input:focus{ outline:2px solid var(--teal); outline-offset:1px; border-color: var(--teal); }
+    .consent{ display:flex; gap:9px; align-items:flex-start; font-size:11.5px; color:var(--muted); line-height:1.5; margin:4px 0 18px; }
+    .consent input{ margin-top:2px; flex:0 0 auto; }
+    .err{ color:var(--danger); font-size:11.5px; margin-top:-8px; margin-bottom:12px; display:none; }
+    .btn{ display:flex; align-items:center; justify-content:center; gap:8px; width:100%; border:none; border-radius:12px; font-family:'Poppins',sans-serif; font-weight:700; font-size:14.5px; padding:15px 18px; cursor:pointer; transition:transform .15s ease, filter .15s ease; }
+    .btn.primary{ background: var(--gradient); color:#fff; }
+    .btn.primary:hover{ filter:brightness(1.06); transform:translateY(-1px); }
+    .btn.primary:disabled{ background:#CFD4DA; color:#8A9099; cursor:not-allowed; transform:none; filter:none; }
+    .trust{ text-align:center; font-size:11.5px; color:var(--muted); margin-top:12px; }
+    .back{ font-size:12px; color:var(--muted); cursor:pointer; text-decoration:underline; display:inline-block; margin-bottom:14px; }
+    .placeholder-box{ background:var(--page); border:1.5px dashed var(--line); border-radius:14px; padding:22px; text-align:center; color:var(--muted); font-size:12.5px; margin-bottom:16px; }
+    .result{ background: var(--gradient); border-radius:14px; padding:20px 20px 18px; color:#fff; margin-bottom:16px; display:none; }
+    .result.show{ display:block; }
+    .result .r-vehicle{ font-size:11.5px; color:rgba(255,255,255,.75); margin-bottom:2px; }
+    .result .r-vehicle b{ color:#fff; }
+    .result .r-fipe{ font-size:11px; color:rgba(255,255,255,.65); margin-bottom:14px; }
+    .result .r-label{ font-size:11px; color:rgba(255,255,255,.75); margin-bottom:2px; }
+    .result .r-value{ font-family:'Poppins',sans-serif; font-weight:800; font-size:38px; color:#fff; line-height:1.05; }
+    .result .r-value span{ font-size:16px; font-weight:600; color:rgba(255,255,255,.85); }
+    .result .r-sub{ font-size:12px; color:rgba(255,255,255,.85); margin-top:8px; line-height:1.5; }
+    .result .r-compare{ margin-top:12px; padding-top:12px; border-top:1px solid rgba(255,255,255,.25); font-size:12.5px; color:#fff; display:flex; gap:8px; align-items:center; }
+    .fineprint-top{ font-size:10.5px; line-height:1.5; color:#9AA3AC; margin-bottom:8px; text-align:center; }
+    @media (max-width: 520px){
+      body{ padding: 18px 12px 36px; }
+      .card-body{ padding: 18px 16px 20px; }
+      .result .r-value{ font-size:34px; }
     }
   </style>
 </head>
 <body>
-  <main class="shell">
-    <section class="hero">
-      <article class="card intro">
-        <div class="badge">Simulador · Frontend estático · API por placa</div>
-        <h1>Proteção veicular com consulta por placa e visual de apresentação.</h1>
-        <p class="lead">
-          Esse front foi preparado para rodar separado do backend no Easypanel. Você informa a URL da API uma vez,
-          consulta a placa e vê a estimativa em tempo real com valor FIPE, plano recomendado e três faixas de proteção.
-        </p>
-
-        <div class="stats">
-          <div class="stat">
-            <strong>Independente</strong>
-            <span>Funciona em serviço separado, sem depender de `file://` nem do backend no mesmo domínio.</span>
-          </div>
-          <div class="stat">
-            <strong>Configurável</strong>
-            <span>A URL da API pode ser salva no navegador ou passada por query string `?api=`.</span>
-          </div>
-          <div class="stat">
-            <strong>Pronto para demo</strong>
-            <span>Se o backend responder, o simulador monta os planos e exibe a cotação na hora.</span>
-          </div>
+<div class="frame">
+  <div class="card">
+    <div class="card-header">
+      <div class="logo" aria-label="Smart Car Proteção Veicular">
+        <div class="logo-mark"></div>
+        <div>
+          <span>smartcar</span>
+          <small>PROTEÇÃO VEICULAR</small>
         </div>
-      </article>
+      </div>
+    </div>
 
-      <article class="card panel">
-        <section class="config">
-          <div class="section-title">
-            <h2>1. Conectar backend</h2>
-            <span class="pill" id="apiStatus">Aguardando URL</span>
-          </div>
-          <div class="row">
-            <div class="field">
-              <label for="apiBase">URL da API</label>
-              <input id="apiBase" type="url" placeholder="https://api.seudominio.com" autocomplete="off">
-            </div>
-            <button class="primary" id="saveApi">Salvar</button>
-          </div>
-          <div class="actions">
-            <button class="ghost" id="testApi">Testar conexão</button>
-            <button class="ghost" id="clearApi">Limpar</button>
-          </div>
-          <div class="hint">
-            Dica: você também pode abrir o site com `?api=https://sua-api.com`. O valor fica salvo no navegador para as próximas visitas.
-          </div>
-        </section>
+    <div class="progress">
+      <div class="seg done" id="prog1"><i></i></div>
+      <div class="seg" id="prog2"><i></i></div>
+    </div>
 
-        <section class="lookup">
-          <div class="section-title">
-            <h2>2. Simular por placa</h2>
-            <span class="pill warn" id="modeBadge">Modo local</span>
-          </div>
-          <div class="field">
-            <label for="plate">Placa do veículo</label>
-            <input id="plate" maxlength="7" placeholder="ABC1D23" autocomplete="off">
-          </div>
-          <div class="actions">
-            <button class="primary" id="simulate">Consultar placa e simular</button>
-          </div>
-          <div class="placeholder" id="messageBox">
-            Informe a URL do backend, depois digite a placa e clique em consultar. O resultado vai aparecer abaixo.
-          </div>
-        </section>
+    <div class="card-body">
+      <div class="step" id="step1">
+        <div class="eyebrow">SIMULADOR SMART CAR</div>
+        <h1>Quanto custa proteger seu veículo por dia?</h1>
+        <p class="lead">Descubra o investimento estimado com base na placa do veículo. Leva menos de 1 minuto e o resultado é na hora.</p>
 
-        <section class="result" id="resultCard">
-          <div class="section-title">
-            <h3>Resultado da simulação</h3>
-            <span class="pill">Cotação dinâmica</span>
-          </div>
-          <div class="value-big" id="dailyValue">R$ 0,00 / dia</div>
-          <div class="sub" id="summaryText">Aguardando consulta.</div>
-          <div class="note" id="resultNote">-</div>
-        </section>
-
-        <section class="plans">
-          <div class="section-title">
-            <h2>3. Planos sugeridos</h2>
-            <span class="pill">Comparativo</span>
-          </div>
-          <div class="plans-grid" id="plansGrid">
-            <div class="plan">
-              <h4>Essencial</h4>
-              <div class="price">-</div>
-              <div>Carregue uma placa para ver a simulação.</div>
-            </div>
-            <div class="plan featured">
-              <h4>Recomendado</h4>
-              <div class="price">-</div>
-              <div>Carregue uma placa para ver a simulação.</div>
-            </div>
-            <div class="plan">
-              <h4>Completo</h4>
-              <div class="price">-</div>
-              <div>Carregue uma placa para ver a simulação.</div>
-            </div>
-          </div>
-        </section>
-
-        <div class="footer">
-          O front está preparado para Easypanel como serviço separado. Basta apontar para a URL pública do backend.
+        <div class="field">
+          <label for="gname">Nome</label>
+          <input id="gname" type="text" placeholder="Seu nome">
         </div>
-      </article>
-    </section>
-  </main>
-
-  <script>
-    const STORAGE_KEY = 'simulador_api_base';
-    const qs = new URLSearchParams(location.search);
-    const apiBaseInput = document.getElementById('apiBase');
-    const apiStatus = document.getElementById('apiStatus');
-    const modeBadge = document.getElementById('modeBadge');
-    const plateInput = document.getElementById('plate');
-    const resultCard = document.getElementById('resultCard');
-    const messageBox = document.getElementById('messageBox');
-    const dailyValue = document.getElementById('dailyValue');
-    const summaryText = document.getElementById('summaryText');
-    const resultNote = document.getElementById('resultNote');
-    const plansGrid = document.getElementById('plansGrid');
-    const savedBase = normalizeBase(qs.get('api') || localStorage.getItem(STORAGE_KEY) || (location.protocol === 'file:' ? 'http://127.0.0.1:8000' : ''));
-
-    apiBaseInput.value = savedBase;
-    updateApiBadge(savedBase);
-
-    function normalizeBase(value) {
-      const clean = String(value || '').trim();
-      return clean.replace(/\/$/, '');
-    }
-
-    function updateApiBadge(base) {
-      if (base) {
-        apiStatus.textContent = 'API configurada';
-        apiStatus.className = 'pill';
-        modeBadge.textContent = 'Online';
-        modeBadge.className = 'pill';
-      } else {
-        apiStatus.textContent = 'Aguardando URL';
-        apiStatus.className = 'pill warn';
-        modeBadge.textContent = 'Modo local';
-        modeBadge.className = 'pill warn';
-      }
-    }
-
-    function setMessage(text, kind = 'info') {
-      messageBox.textContent = text;
-      messageBox.style.borderColor = kind === 'error' ? 'rgba(185, 28, 28, .28)' : 'rgba(15,23,42,.18)';
-      messageBox.style.color = kind === 'error' ? 'var(--danger)' : 'var(--muted)';
-      messageBox.style.background = kind === 'error' ? 'rgba(185,28,28,.06)' : 'rgba(255,255,255,.56)';
-    }
-
-    function money(value) {
-      return new Intl.NumberFormat('pt-BR', {
-        style: 'currency',
-        currency: 'BRL'
-      }).format(Number(value || 0));
-    }
-
-    function isValidPlate(value) {
-      return /^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/.test(String(value || '').toUpperCase());
-    }
-
-    async function fetchJSON(url) {
-      const response = await fetch(url);
-      const payload = await response.json().catch(() => null);
-      if (!response.ok) {
-        const detail = payload && (payload.detail || payload.message || payload.error);
-        throw new Error(detail || `HTTP ${response.status}`);
-      }
-      return payload;
-    }
-
-    function renderPlans(planos = []) {
-      if (!planos.length) {
-        plansGrid.innerHTML = `
-          <div class="plan"><h4>Essencial</h4><div class="price">-</div><div>Sem dados ainda.</div></div>
-          <div class="plan featured"><h4>Recomendado</h4><div class="price">-</div><div>Sem dados ainda.</div></div>
-          <div class="plan"><h4>Completo</h4><div class="price">-</div><div>Sem dados ainda.</div></div>
-        `;
-        return;
-      }
-
-      plansGrid.innerHTML = planos.map((plan, index) => `
-        <div class="plan ${index === 1 ? 'featured' : ''}">
-          <h4>${plan.nome}</h4>
-          <div class="price">${money(plan.mensal)} / mês</div>
-          <div>Ou ${money(plan.anual)} por ano</div>
-          <div style="margin-top:8px; color: var(--muted);">Franquia estimada: ${money(plan.franquia)}</div>
-          <ul>
-            ${(plan.coberturas || []).map(item => `<li>${item}</li>`).join('')}
-          </ul>
+        <div class="field">
+          <label for="gphone">WhatsApp (com DDD)</label>
+          <input id="gphone" type="tel" placeholder="(87) 9 0000-0000">
         </div>
-      `).join('');
-    }
+        <div class="err" id="gateErr">Preencha nome e WhatsApp para continuar.</div>
+        <div class="consent">
+          <input type="checkbox" id="gconsent">
+          <label for="gconsent">Autorizo contato via WhatsApp com minha simulação e novidades da Smart Car.</label>
+        </div>
+        <button class="btn primary" id="gateBtn">Ver meu simulador →</button>
+        <div class="trust">Sem compromisso. Você não paga nada por essa simulação.</div>
+      </div>
 
-    function renderSummary(data) {
-      const veiculo = data.veiculo || {};
-      const fipe = data.tabela_fipe || {};
-      const simulacao = data.simulacao || {};
-      const planos = Array.isArray(simulacao.planos) ? simulacao.planos : [];
-      const plano = simulacao.plano_recomendado || planos[1] || planos[0] || null;
-      const valor = Number(fipe.valor || 0);
-      const monthly = plano ? Number(plano.mensal || 0) : valor * 0.007;
-      const daily = monthly / 30;
+      <div class="step" id="step2" style="display:none;">
+        <div class="back" id="backLink">← Trocar meus dados</div>
+        <div class="eyebrow">SIMULADOR COM CONSULTA POR PLACA</div>
+        <h2 id="greeting">Vamos calcular o seu.</h2>
 
-      dailyValue.textContent = `${money(daily)} / dia`;
-      summaryText.textContent = [
-        data.placa ? `Placa ${data.placa}` : null,
-        [veiculo.marca, veiculo.modelo].filter(Boolean).join(' ') || 'Veículo identificado',
-        veiculo.ano_modelo ? `Ano ${veiculo.ano_modelo}` : null,
-        data.modo ? `Modo ${data.modo}` : null
-      ].filter(Boolean).join(' · ');
+        <div class="field">
+          <label for="plateInput">Placa do veículo</label>
+          <input id="plateInput" type="text" placeholder="ABC1D23" maxlength="7" autocomplete="off">
+        </div>
 
-      resultNote.textContent = plano
-        ? `Plano recomendado: ${plano.nome} · cerca de ${money(plano.mensal)} por mês · franquia de ${money(plano.franquia)}`
-        : `Cotação calculada com base no valor consultado de ${fipe.texto || money(valor)}.`;
+        <button class="btn primary" id="plateCalcBtn" type="button">Consultar placa e simular</button>
 
-      renderPlans(planos);
-      resultCard.classList.add('show');
-      setMessage(data.observacao || 'Simulação concluída com sucesso.');
-      modeBadge.textContent = data.modo === 'api' ? 'Online' : 'Demo';
-      modeBadge.className = data.modo === 'api' ? 'pill' : 'pill warn';
-    }
+        <div class="placeholder-box" id="placeholderBox">Digite a placa e clique em "Consultar placa e simular". O sistema vai buscar os dados e gerar a estimativa automaticamente.</div>
 
-    function getApiBase() {
-      return normalizeBase(apiBaseInput.value);
-    }
+        <div class="result" id="result">
+          <div class="r-vehicle" id="rVehicle"><b>—</b></div>
+          <div class="r-fipe" id="rFipeInfo">—</div>
+          <div class="r-label">Investimento estimado</div>
+          <div class="r-value" id="rDay">R$ 0,00 <span>por dia</span></div>
+          <div class="r-sub" id="rSub"></div>
+          <div class="r-compare" id="rCompare"></div>
+        </div>
 
-    async function testConnection() {
-      const base = getApiBase();
-      if (!base) {
-        setMessage('Informe a URL da API primeiro.', 'error');
-        return;
-      }
+        <button class="btn primary" id="waBtn2" disabled>Falar com um consultor</button>
+        <div class="fineprint-top" style="margin-top:12px;">Estimativa acadêmica gerada a partir da consulta por placa. O valor final pode variar na análise comercial.</div>
+      </div>
+    </div>
+  </div>
+</div>
 
-      apiStatus.textContent = 'Testando...';
-      apiStatus.className = 'pill warn';
-      try {
-        await fetchJSON(`${base}/health`);
-        apiStatus.textContent = 'API online';
-        apiStatus.className = 'pill';
-        setMessage('Conexão com o backend confirmada.');
-      } catch (error) {
-        apiStatus.textContent = 'Falha na API';
-        apiStatus.className = 'pill danger';
-        setMessage(error.message || 'Não foi possível conectar ao backend.', 'error');
-      }
-    }
+<script>
+const LEAD = { name: '', phone: '' };
+const API_BASE = ((window.SIMULADOR_API_BASE || new URLSearchParams(location.search).get('api') || (location.protocol === 'file:' ? 'http://127.0.0.1:8000' : '')) || '').replace(/\/$/, '');
 
-    async function simulate() {
-      const base = getApiBase();
-      const plate = String(plateInput.value || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+function fmtBRL(n){
+  return Number(n || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
 
-      if (!base) {
-        setMessage('Informe a URL da API antes de consultar.', 'error');
-        return;
-      }
+function compareLine(daily){
+  if(daily < 2.5) return 'Menos que um pão com café da manhã';
+  if(daily < 4) return 'Menos que um lanche na padaria';
+  if(daily < 6) return 'Menos que uma passagem de ônibus (ida e volta)';
+  return 'Menos que uma corrida curta de aplicativo';
+}
 
-      if (!isValidPlate(plate)) {
-        setMessage('Digite uma placa válida, por exemplo ABC1D23.', 'error');
-        return;
-      }
+function normalizePlate(value){
+  return String(value || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+}
 
-      resultCard.classList.remove('show');
-      setMessage('Consultando a placa e montando a simulação...');
+function money(value){
+  return new Intl.NumberFormat('pt-BR', { style:'currency', currency:'BRL' }).format(Number(value || 0));
+}
 
-      const button = document.getElementById('simulate');
-      button.disabled = true;
-      button.textContent = 'Consultando...';
+async function fetchJSON(url){
+  const res = await fetch(url);
+  const payload = await res.json().catch(() => null);
+  if(!res.ok){
+    const detail = payload && (payload.detail || payload.message || payload.error);
+    throw new Error(detail || ('HTTP ' + res.status));
+  }
+  return payload;
+}
 
-      try {
-        const data = await fetchJSON(`${base}/api/simular/${encodeURIComponent(plate)}`);
-        renderSummary(data);
-      } catch (error) {
-        setMessage(error.message || 'Não foi possível consultar a API.', 'error');
-      } finally {
-        button.disabled = false;
-        button.textContent = 'Consultar placa e simular';
-      }
-    }
+function hideResult(message){
+  const box = document.getElementById('placeholderBox');
+  const result = document.getElementById('result');
+  const wa = document.getElementById('waBtn2');
+  result.classList.remove('show');
+  box.style.display = 'block';
+  if(message) box.textContent = message;
+  wa.disabled = true;
+  wa.textContent = 'Falar com um consultor';
+  wa.dataset.href = '';
+}
 
-    document.getElementById('saveApi').addEventListener('click', () => {
-      const base = getApiBase();
-      if (!base) {
-        setMessage('Informe uma URL válida.', 'error');
-        return;
-      }
-      localStorage.setItem(STORAGE_KEY, base);
-      updateApiBadge(base);
-      setMessage(`URL da API salva: ${base}`);
-    });
+function renderResult(data){
+  const veiculo = data.veiculo || {};
+  const fipe = data.tabela_fipe || {};
+  const simulacao = data.simulacao || {};
+  const planos = Array.isArray(simulacao.planos) ? simulacao.planos : [];
+  const plano = simulacao.plano_recomendado || planos[1] || planos[0] || null;
+  const valor = Number(fipe.valor || 0);
+  const monthly = plano ? Number(plano.mensal || 0) : valor * 0.007;
+  const daily = monthly / 30;
+  const vehicleLabel = [veiculo.marca, veiculo.modelo].filter(Boolean).join(' ') || 'Veículo identificado';
+  const subLabel = [veiculo.ano_modelo ? ('Ano ' + veiculo.ano_modelo) : null, veiculo.combustivel || null, data.modo ? ('Modo ' + data.modo) : null].filter(Boolean).join(' · ');
 
-    document.getElementById('testApi').addEventListener('click', testConnection);
-    document.getElementById('clearApi').addEventListener('click', () => {
-      localStorage.removeItem(STORAGE_KEY);
-      apiBaseInput.value = '';
-      updateApiBadge('');
-      setMessage('URL da API removida.');
-    });
+  document.getElementById('rVehicle').innerHTML = '<b>' + vehicleLabel + '</b>' + (subLabel ? ' · ' + subLabel : '');
+  document.getElementById('rFipeInfo').textContent = 'Valor consultado: ' + (fipe.texto || money(valor)) + (data.modo ? ' · modo ' + data.modo : '');
+  document.getElementById('rDay').innerHTML = money(daily) + ' <span>por dia</span>';
+  document.getElementById('rSub').textContent = plano
+    ? ('Plano recomendado: ' + plano.nome + ' · franquia estimada de ' + money(plano.franquia) + ' · cerca de ' + money(plano.mensal) + ' por mês')
+    : 'Estimativa gerada automaticamente a partir do valor consultado.';
+  document.getElementById('rCompare').textContent = compareLine(daily);
+  document.getElementById('placeholderBox').style.display = 'none';
+  document.getElementById('result').classList.add('show');
 
-    document.getElementById('simulate').addEventListener('click', simulate);
-    plateInput.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter') simulate();
-    });
+  const wa = document.getElementById('waBtn2');
+  const consultantPhone = '5587991576311';
+  const msg = 'Olá! Simulei no site da Smart Car a placa ' + data.placa +
+    ', com investimento estimado de ' + money(daily) + ' por dia. Meu nome é ' + LEAD.name + ', WhatsApp ' + LEAD.phone + '. Quero a cotação exata!';
+  wa.disabled = false;
+  wa.dataset.href = 'https://wa.me/' + consultantPhone + '?text=' + encodeURIComponent(msg);
+}
 
-    if (getApiBase()) {
-      setMessage('API configurada. Você já pode testar uma placa.');
-    } else {
-      setMessage('Salve a URL do backend para começar.');
-    }
-  </script>
+async function simulate(){
+  const plate = normalizePlate(document.getElementById('plateInput').value);
+  if(!API_BASE){
+    hideResult('Informe a URL da API para continuar.');
+    return;
+  }
+  if(!/^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/.test(plate)){
+    hideResult('Digite uma placa válida, por exemplo ABC1D23.');
+    return;
+  }
+
+  const btn = document.getElementById('plateCalcBtn');
+  btn.disabled = true;
+  btn.textContent = 'Consultando...';
+  document.getElementById('placeholderBox').textContent = 'Consultando a placa e gerando a simulação...';
+
+  try{
+    const data = await fetchJSON(API_BASE + '/api/simular/' + encodeURIComponent(plate));
+    renderResult(data);
+  }catch(error){
+    hideResult('Não foi possível consultar a placa agora. Verifique se a API está rodando e tente novamente.');
+  }finally{
+    btn.disabled = false;
+    btn.textContent = 'Consultar placa e simular';
+  }
+}
+
+document.getElementById('gateBtn').addEventListener('click', ()=>{
+  const name = document.getElementById('gname').value.trim();
+  const phone = document.getElementById('gphone').value.trim();
+  const consent = document.getElementById('gconsent').checked;
+  const err = document.getElementById('gateErr');
+
+  if(!name || !phone || !consent){
+    err.style.display = 'block';
+    err.textContent = !consent ? 'Marque a autorização de contato para continuar.' : 'Preencha nome e WhatsApp para continuar.';
+    return;
+  }
+  err.style.display = 'none';
+  LEAD.name = name;
+  LEAD.phone = phone;
+  document.getElementById('greeting').textContent = 'Oi, ' + name.split(' ')[0] + '! Vamos calcular o seu.';
+  document.getElementById('step1').style.display = 'none';
+  document.getElementById('step2').style.display = 'block';
+  document.getElementById('prog2').classList.add('done');
+  document.getElementById('plateInput').focus();
+});
+
+document.getElementById('backLink').addEventListener('click', ()=>{
+  document.getElementById('step2').style.display = 'none';
+  document.getElementById('step1').style.display = 'block';
+  document.getElementById('prog2').classList.remove('done');
+});
+
+document.getElementById('plateCalcBtn').addEventListener('click', simulate);
+document.getElementById('plateInput').addEventListener('keydown', (event)=>{
+  if(event.key === 'Enter') simulate();
+});
+document.getElementById('waBtn2').addEventListener('click', (e)=>{
+  const href = e.currentTarget.dataset.href;
+  if(href) window.open(href, '_blank', 'noopener');
+});
+
+if(!API_BASE){
+  document.getElementById('placeholderBox').textContent = 'Salve a URL da API na própria página ou use ?api=https://sua-api.com';
+}
+</script>
 </body>
 </html>
