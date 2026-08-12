@@ -1,0 +1,641 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulador de Proteção Veicular por Placa</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Fraunces:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #eef3f8;
+      --panel: rgba(255,255,255,.82);
+      --panel-strong: #ffffff;
+      --line: rgba(15, 23, 42, .10);
+      --ink: #0f172a;
+      --muted: #526076;
+      --accent: #0070f3;
+      --accent-2: #00b48f;
+      --accent-3: #101827;
+      --warn: #b45309;
+      --danger: #b91c1c;
+      --shadow: 0 28px 80px rgba(15,23,42,.12);
+      --radius: 24px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      font-family: Inter, system-ui, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(0,112,243,.16), transparent 34%),
+        radial-gradient(circle at top right, rgba(0,180,143,.14), transparent 28%),
+        linear-gradient(180deg, #f7fbff 0%, #eef3f8 100%);
+    }
+
+    .shell {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 28px 18px 48px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap: 22px;
+      align-items: stretch;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      backdrop-filter: blur(18px);
+      box-shadow: var(--shadow);
+      border-radius: var(--radius);
+    }
+
+    .intro {
+      padding: 32px;
+      min-height: 100%;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .intro::after {
+      content: '';
+      position: absolute;
+      inset: auto -12% -40% auto;
+      width: 260px;
+      height: 260px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0,180,143,.22), transparent 62%);
+      pointer-events: none;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(15,23,42,.06);
+      font-size: .82rem;
+      font-weight: 700;
+      color: var(--accent-3);
+      letter-spacing: .03em;
+    }
+
+    h1 {
+      font-family: Fraunces, Georgia, serif;
+      font-size: clamp(2.4rem, 5vw, 4.5rem);
+      line-height: .95;
+      margin: 18px 0 14px;
+      letter-spacing: -.03em;
+    }
+
+    .lead {
+      max-width: 62ch;
+      color: var(--muted);
+      line-height: 1.75;
+      font-size: 1.02rem;
+      margin: 0;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 28px;
+    }
+
+    .stat {
+      padding: 16px;
+      border-radius: 18px;
+      background: rgba(255,255,255,.7);
+      border: 1px solid rgba(15,23,42,.08);
+    }
+
+    .stat strong { display: block; margin-bottom: 6px; font-size: 1rem; }
+    .stat span { color: var(--muted); font-size: .92rem; line-height: 1.5; }
+
+    .panel {
+      padding: 24px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .config, .lookup, .result, .plans {
+      background: rgba(255,255,255,.72);
+      border: 1px solid rgba(15,23,42,.08);
+      border-radius: 20px;
+      padding: 18px;
+    }
+
+    .section-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .section-title h2, .section-title h3 {
+      margin: 0;
+      font-size: 1rem;
+      letter-spacing: -.01em;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: .82rem;
+      font-weight: 700;
+      background: rgba(0, 180, 143, .12);
+      color: #0f766e;
+    }
+
+    .pill.warn { background: rgba(180, 83, 9, .10); color: var(--warn); }
+    .pill.danger { background: rgba(185, 28, 28, .10); color: var(--danger); }
+
+    .field { display: grid; gap: 8px; }
+    .field label { font-size: .9rem; font-weight: 700; color: var(--accent-3); }
+    .field input {
+      width: 100%;
+      border: 1px solid rgba(15,23,42,.12);
+      border-radius: 14px;
+      padding: 14px 16px;
+      font-size: 1rem;
+      background: #fff;
+      color: var(--ink);
+      outline: none;
+    }
+    .field input:focus {
+      border-color: rgba(0,112,243,.55);
+      box-shadow: 0 0 0 4px rgba(0,112,243,.10);
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: end;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 14px;
+      padding: 14px 18px;
+      font-size: .98rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform .15s ease, filter .15s ease, opacity .15s ease;
+    }
+    button:hover { transform: translateY(-1px); }
+    button:disabled { cursor: not-allowed; opacity: .72; transform: none; }
+
+    .primary {
+      color: #fff;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+      box-shadow: 0 16px 30px rgba(0,112,243,.18);
+    }
+    .ghost {
+      color: var(--accent-3);
+      background: rgba(15,23,42,.06);
+    }
+
+    .hint {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: .88rem;
+      line-height: 1.55;
+    }
+
+    .lookup {
+      display: grid;
+      gap: 14px;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .metric {
+      background: rgba(15,23,42,.04);
+      border: 1px solid rgba(15,23,42,.06);
+      border-radius: 16px;
+      padding: 14px;
+      min-height: 96px;
+    }
+    .metric .label {
+      display: block;
+      font-size: .78rem;
+      text-transform: uppercase;
+      letter-spacing: .10em;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .metric .value {
+      font-size: 1.03rem;
+      font-weight: 800;
+      line-height: 1.35;
+    }
+
+    .placeholder {
+      padding: 16px;
+      border-radius: 16px;
+      border: 1px dashed rgba(15,23,42,.18);
+      color: var(--muted);
+      background: rgba(255,255,255,.56);
+      line-height: 1.6;
+    }
+
+    .result {
+      display: none;
+      background: linear-gradient(180deg, rgba(15,23,42,.98), rgba(15,23,42,.90));
+      color: #fff;
+      border: 0;
+      box-shadow: 0 22px 52px rgba(15,23,42,.26);
+    }
+    .result.show { display: block; }
+    .result .section-title { margin-bottom: 16px; }
+    .result .pill { background: rgba(255,255,255,.10); color: #d8f9ef; }
+    .result .value-big {
+      font-size: clamp(2.2rem, 5vw, 3.8rem);
+      font-weight: 900;
+      letter-spacing: -.04em;
+      line-height: 1;
+      margin: 4px 0 12px;
+    }
+    .result .sub {
+      color: rgba(255,255,255,.78);
+      line-height: 1.6;
+    }
+    .result .note {
+      margin-top: 14px;
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: rgba(255,255,255,.08);
+      color: rgba(255,255,255,.90);
+    }
+
+    .plans-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .plan {
+      background: rgba(255,255,255,.76);
+      border: 1px solid rgba(15,23,42,.08);
+      border-radius: 18px;
+      padding: 16px;
+    }
+    .plan.featured {
+      border-color: rgba(0,112,243,.28);
+      box-shadow: 0 18px 28px rgba(0,112,243,.09);
+    }
+    .plan h4 { margin: 0 0 10px; font-size: 1rem; }
+    .plan .price { font-size: 1.5rem; font-weight: 900; color: var(--accent); margin-bottom: 8px; }
+    .plan ul { margin: 12px 0 0; padding-left: 18px; color: var(--muted); line-height: 1.6; }
+
+    .footer {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: .86rem;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 960px) {
+      .hero { grid-template-columns: 1fr; }
+      .stats, .summary, .plans-grid { grid-template-columns: 1fr; }
+      .row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <article class="card intro">
+        <div class="badge">Simulador · Frontend estático · API por placa</div>
+        <h1>Proteção veicular com consulta por placa e visual de apresentação.</h1>
+        <p class="lead">
+          Esse front foi preparado para rodar separado do backend no Easypanel. Você informa a URL da API uma vez,
+          consulta a placa e vê a estimativa em tempo real com valor FIPE, plano recomendado e três faixas de proteção.
+        </p>
+
+        <div class="stats">
+          <div class="stat">
+            <strong>Independente</strong>
+            <span>Funciona em serviço separado, sem depender de `file://` nem do backend no mesmo domínio.</span>
+          </div>
+          <div class="stat">
+            <strong>Configurável</strong>
+            <span>A URL da API pode ser salva no navegador ou passada por query string `?api=`.</span>
+          </div>
+          <div class="stat">
+            <strong>Pronto para demo</strong>
+            <span>Se o backend responder, o simulador monta os planos e exibe a cotação na hora.</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="card panel">
+        <section class="config">
+          <div class="section-title">
+            <h2>1. Conectar backend</h2>
+            <span class="pill" id="apiStatus">Aguardando URL</span>
+          </div>
+          <div class="row">
+            <div class="field">
+              <label for="apiBase">URL da API</label>
+              <input id="apiBase" type="url" placeholder="https://api.seudominio.com" autocomplete="off">
+            </div>
+            <button class="primary" id="saveApi">Salvar</button>
+          </div>
+          <div class="actions">
+            <button class="ghost" id="testApi">Testar conexão</button>
+            <button class="ghost" id="clearApi">Limpar</button>
+          </div>
+          <div class="hint">
+            Dica: você também pode abrir o site com `?api=https://sua-api.com`. O valor fica salvo no navegador para as próximas visitas.
+          </div>
+        </section>
+
+        <section class="lookup">
+          <div class="section-title">
+            <h2>2. Simular por placa</h2>
+            <span class="pill warn" id="modeBadge">Modo local</span>
+          </div>
+          <div class="field">
+            <label for="plate">Placa do veículo</label>
+            <input id="plate" maxlength="7" placeholder="ABC1D23" autocomplete="off">
+          </div>
+          <div class="actions">
+            <button class="primary" id="simulate">Consultar placa e simular</button>
+          </div>
+          <div class="placeholder" id="messageBox">
+            Informe a URL do backend, depois digite a placa e clique em consultar. O resultado vai aparecer abaixo.
+          </div>
+        </section>
+
+        <section class="result" id="resultCard">
+          <div class="section-title">
+            <h3>Resultado da simulação</h3>
+            <span class="pill">Cotação dinâmica</span>
+          </div>
+          <div class="value-big" id="dailyValue">R$ 0,00 / dia</div>
+          <div class="sub" id="summaryText">Aguardando consulta.</div>
+          <div class="note" id="resultNote">-</div>
+        </section>
+
+        <section class="plans">
+          <div class="section-title">
+            <h2>3. Planos sugeridos</h2>
+            <span class="pill">Comparativo</span>
+          </div>
+          <div class="plans-grid" id="plansGrid">
+            <div class="plan">
+              <h4>Essencial</h4>
+              <div class="price">-</div>
+              <div>Carregue uma placa para ver a simulação.</div>
+            </div>
+            <div class="plan featured">
+              <h4>Recomendado</h4>
+              <div class="price">-</div>
+              <div>Carregue uma placa para ver a simulação.</div>
+            </div>
+            <div class="plan">
+              <h4>Completo</h4>
+              <div class="price">-</div>
+              <div>Carregue uma placa para ver a simulação.</div>
+            </div>
+          </div>
+        </section>
+
+        <div class="footer">
+          O front está preparado para Easypanel como serviço separado. Basta apontar para a URL pública do backend.
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <script>
+    const STORAGE_KEY = 'simulador_api_base';
+    const qs = new URLSearchParams(location.search);
+    const apiBaseInput = document.getElementById('apiBase');
+    const apiStatus = document.getElementById('apiStatus');
+    const modeBadge = document.getElementById('modeBadge');
+    const plateInput = document.getElementById('plate');
+    const resultCard = document.getElementById('resultCard');
+    const messageBox = document.getElementById('messageBox');
+    const dailyValue = document.getElementById('dailyValue');
+    const summaryText = document.getElementById('summaryText');
+    const resultNote = document.getElementById('resultNote');
+    const plansGrid = document.getElementById('plansGrid');
+    const savedBase = normalizeBase(qs.get('api') || localStorage.getItem(STORAGE_KEY) || (location.protocol === 'file:' ? 'http://127.0.0.1:8000' : ''));
+
+    apiBaseInput.value = savedBase;
+    updateApiBadge(savedBase);
+
+    function normalizeBase(value) {
+      const clean = String(value || '').trim();
+      return clean.replace(/\/$/, '');
+    }
+
+    function updateApiBadge(base) {
+      if (base) {
+        apiStatus.textContent = 'API configurada';
+        apiStatus.className = 'pill';
+        modeBadge.textContent = 'Online';
+        modeBadge.className = 'pill';
+      } else {
+        apiStatus.textContent = 'Aguardando URL';
+        apiStatus.className = 'pill warn';
+        modeBadge.textContent = 'Modo local';
+        modeBadge.className = 'pill warn';
+      }
+    }
+
+    function setMessage(text, kind = 'info') {
+      messageBox.textContent = text;
+      messageBox.style.borderColor = kind === 'error' ? 'rgba(185, 28, 28, .28)' : 'rgba(15,23,42,.18)';
+      messageBox.style.color = kind === 'error' ? 'var(--danger)' : 'var(--muted)';
+      messageBox.style.background = kind === 'error' ? 'rgba(185,28,28,.06)' : 'rgba(255,255,255,.56)';
+    }
+
+    function money(value) {
+      return new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
+      }).format(Number(value || 0));
+    }
+
+    function isValidPlate(value) {
+      return /^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/.test(String(value || '').toUpperCase());
+    }
+
+    async function fetchJSON(url) {
+      const response = await fetch(url);
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) {
+        const detail = payload && (payload.detail || payload.message || payload.error);
+        throw new Error(detail || `HTTP ${response.status}`);
+      }
+      return payload;
+    }
+
+    function renderPlans(planos = []) {
+      if (!planos.length) {
+        plansGrid.innerHTML = `
+          <div class="plan"><h4>Essencial</h4><div class="price">-</div><div>Sem dados ainda.</div></div>
+          <div class="plan featured"><h4>Recomendado</h4><div class="price">-</div><div>Sem dados ainda.</div></div>
+          <div class="plan"><h4>Completo</h4><div class="price">-</div><div>Sem dados ainda.</div></div>
+        `;
+        return;
+      }
+
+      plansGrid.innerHTML = planos.map((plan, index) => `
+        <div class="plan ${index === 1 ? 'featured' : ''}">
+          <h4>${plan.nome}</h4>
+          <div class="price">${money(plan.mensal)} / mês</div>
+          <div>Ou ${money(plan.anual)} por ano</div>
+          <div style="margin-top:8px; color: var(--muted);">Franquia estimada: ${money(plan.franquia)}</div>
+          <ul>
+            ${(plan.coberturas || []).map(item => `<li>${item}</li>`).join('')}
+          </ul>
+        </div>
+      `).join('');
+    }
+
+    function renderSummary(data) {
+      const veiculo = data.veiculo || {};
+      const fipe = data.tabela_fipe || {};
+      const simulacao = data.simulacao || {};
+      const planos = Array.isArray(simulacao.planos) ? simulacao.planos : [];
+      const plano = simulacao.plano_recomendado || planos[1] || planos[0] || null;
+      const valor = Number(fipe.valor || 0);
+      const monthly = plano ? Number(plano.mensal || 0) : valor * 0.007;
+      const daily = monthly / 30;
+
+      dailyValue.textContent = `${money(daily)} / dia`;
+      summaryText.textContent = [
+        data.placa ? `Placa ${data.placa}` : null,
+        [veiculo.marca, veiculo.modelo].filter(Boolean).join(' ') || 'Veículo identificado',
+        veiculo.ano_modelo ? `Ano ${veiculo.ano_modelo}` : null,
+        data.modo ? `Modo ${data.modo}` : null
+      ].filter(Boolean).join(' · ');
+
+      resultNote.textContent = plano
+        ? `Plano recomendado: ${plano.nome} · cerca de ${money(plano.mensal)} por mês · franquia de ${money(plano.franquia)}`
+        : `Cotação calculada com base no valor consultado de ${fipe.texto || money(valor)}.`;
+
+      renderPlans(planos);
+      resultCard.classList.add('show');
+      setMessage(data.observacao || 'Simulação concluída com sucesso.');
+      modeBadge.textContent = data.modo === 'api' ? 'Online' : 'Demo';
+      modeBadge.className = data.modo === 'api' ? 'pill' : 'pill warn';
+    }
+
+    function getApiBase() {
+      return normalizeBase(apiBaseInput.value);
+    }
+
+    async function testConnection() {
+      const base = getApiBase();
+      if (!base) {
+        setMessage('Informe a URL da API primeiro.', 'error');
+        return;
+      }
+
+      apiStatus.textContent = 'Testando...';
+      apiStatus.className = 'pill warn';
+      try {
+        await fetchJSON(`${base}/health`);
+        apiStatus.textContent = 'API online';
+        apiStatus.className = 'pill';
+        setMessage('Conexão com o backend confirmada.');
+      } catch (error) {
+        apiStatus.textContent = 'Falha na API';
+        apiStatus.className = 'pill danger';
+        setMessage(error.message || 'Não foi possível conectar ao backend.', 'error');
+      }
+    }
+
+    async function simulate() {
+      const base = getApiBase();
+      const plate = String(plateInput.value || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+
+      if (!base) {
+        setMessage('Informe a URL da API antes de consultar.', 'error');
+        return;
+      }
+
+      if (!isValidPlate(plate)) {
+        setMessage('Digite uma placa válida, por exemplo ABC1D23.', 'error');
+        return;
+      }
+
+      resultCard.classList.remove('show');
+      setMessage('Consultando a placa e montando a simulação...');
+
+      const button = document.getElementById('simulate');
+      button.disabled = true;
+      button.textContent = 'Consultando...';
+
+      try {
+        const data = await fetchJSON(`${base}/api/simular/${encodeURIComponent(plate)}`);
+        renderSummary(data);
+      } catch (error) {
+        setMessage(error.message || 'Não foi possível consultar a API.', 'error');
+      } finally {
+        button.disabled = false;
+        button.textContent = 'Consultar placa e simular';
+      }
+    }
+
+    document.getElementById('saveApi').addEventListener('click', () => {
+      const base = getApiBase();
+      if (!base) {
+        setMessage('Informe uma URL válida.', 'error');
+        return;
+      }
+      localStorage.setItem(STORAGE_KEY, base);
+      updateApiBadge(base);
+      setMessage(`URL da API salva: ${base}`);
+    });
+
+    document.getElementById('testApi').addEventListener('click', testConnection);
+    document.getElementById('clearApi').addEventListener('click', () => {
+      localStorage.removeItem(STORAGE_KEY);
+      apiBaseInput.value = '';
+      updateApiBadge('');
+      setMessage('URL da API removida.');
+    });
+
+    document.getElementById('simulate').addEventListener('click', simulate);
+    plateInput.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') simulate();
+    });
+
+    if (getApiBase()) {
+      setMessage('API configurada. Você já pode testar uma placa.');
+    } else {
+      setMessage('Salve a URL do backend para começar.');
+    }
+  </script>
+</body>
+</html>
