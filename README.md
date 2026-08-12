@@ -6,8 +6,8 @@ Site estático do simulador de proteção veicular.
 
 - O frontend é servido como site estático.
 - O arquivo principal é Simulador_FIPE_Custo_Diario.html.
-- A URL do backend é configurada dentro da própria página ou via query string ?api=.
-- O navegador salva a URL da API em localStorage.
+- A URL do backend vem da variável de ambiente `SIMULADOR_API_BASE`.
+- O container gera um `env.js` na inicialização e a página lê esse valor automaticamente.
 
 ## Execução local
 
@@ -20,11 +20,11 @@ Abra Simulador_FIPE_Custo_Diario.html no navegador ou sirva a pasta com qualquer
 3. Use o Dockerfile da raiz.
 4. A aplicação escuta na porta 80.
 5. Aponte o domínio do frontend para o serviço.
-6. No campo de URL da API, informe a URL pública do backend.
+6. Configure a variável de ambiente `SIMULADOR_API_BASE` com a URL pública do backend.
 
 ## Exemplo
 
 https://api.seudominio.com
 
-Depois disso, salve e clique em Testar conexão.
+Depois disso, salve e faça o deploy.
 

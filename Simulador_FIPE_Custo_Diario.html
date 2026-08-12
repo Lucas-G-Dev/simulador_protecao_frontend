@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="/env.js"></script>
   <style>
     :root{
       --dark:#2B2A3A;
@@ -176,7 +177,7 @@
 
 <script>
 const LEAD = { name: '', phone: '' };
-const API_BASE = ((window.SIMULADOR_API_BASE || new URLSearchParams(location.search).get('api') || (location.protocol === 'file:' ? 'http://127.0.0.1:8000' : '')) || '').replace(/\/$/, '');
+const API_BASE = String((window.__ENV && window.__ENV.API_BASE) || window.SIMULADOR_API_BASE || (location.protocol === 'file:' ? 'http://127.0.0.1:8000' : '') || '').trim().replace(/\/$/, '');
 
 function fmtBRL(n){
   return Number(n || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -316,7 +317,7 @@ document.getElementById('waBtn2').addEventListener('click', (e)=>{
 });
 
 if(!API_BASE){
-  document.getElementById('placeholderBox').textContent = 'Salve a URL da API na própria página ou use ?api=https://sua-api.com';
+  document.getElementById('placeholderBox').textContent = 'Defina a URL da API na variável de ambiente do container para habilitar a simulação.';
 }
 </script>
 </body>
