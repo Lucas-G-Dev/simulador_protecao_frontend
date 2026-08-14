@@ -300,7 +300,7 @@ function renderResult(resultado){
   document.getElementById('rVehicle').innerHTML = '<b>' + vehicleLabel + '</b>' + (subLabel ? '  ' + subLabel : '');
   document.getElementById('rFipeInfo').textContent = 'Valor Tabela FIPE: ' + (ref.price || money(valor)) + (ref.referenceMonth ? ' · referência ' + ref.referenceMonth : '');
   document.getElementById('rDay').innerHTML = money(daily) + ' <span>por dia</span>';
-  document.getElementById('rSub').textContent = '% ' + money(monthly) + ' estimativa de ' + (rate * 100).toFixed(1).replace('.', ',') + '% do valor do veículo ao ano';
+  document.getElementById('rSub').textContent = ' ' + money(monthly) + ' estimativa de ' + (rate * 100).toFixed(1).replace('.', ',') + '% do valor do veículo ao ano';
   document.getElementById('rCompare').textContent = compareLine(daily);
   document.getElementById('placeholderBox').style.display = 'none';
   document.getElementById('result').classList.add('show');
