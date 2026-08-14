@@ -208,9 +208,9 @@ function fmtBRL(n){
 }
 
 function compareLine(daily){
-  if(daily < 2.5) return 'Menos que um pÃ£o com cafÃ© da manhÃ£';
+  if(daily < 2.5) return 'Menos que um pão com café da manhã';
   if(daily < 4) return 'Menos que um lanche na padaria';
-  if(daily < 6) return 'Menos que uma passagem de Ã´nibus (ida e volta)';
+  if(daily < 6) return 'Menos que uma passagem de ônibus (ida e volta)';
   return 'Menos que uma corrida curta de aplicativo';
 }
 
@@ -282,7 +282,7 @@ function renderResult(resultado){
   const valor = Number(ref.priceNumeric ?? 0);
 
   if(!valor){
-    hideResult('Encontramos o veÃ­culo, mas nÃ£o conseguimos obter o valor FIPE. Fale com um consultor para a cotaÃ§Ã£o exata.');
+    hideResult('Encontramos o veí­culo, mas não conseguimos obter o valor FIPE. Fale com um consultor para a cotação exata.');
     return;
   }
 
@@ -290,25 +290,25 @@ function renderResult(resultado){
   const monthly = valor * rate / 12;
   const daily = monthly / 30;
 
-  const vehicleLabel = [veic.marca || ref.brand, veic.modelo || ref.model].filter(Boolean).join(' ') || 'VeÃ­culo identificado';
+  const vehicleLabel = [veic.marca || ref.brand, veic.modelo || ref.model].filter(Boolean).join(' ') || 'Veí­culo identificado';
   const subLabel = [
     (ref.modelYear || veic.anoModelo) ? ('Ano ' + (ref.modelYear || veic.anoModelo)) : null,
     ref.fuel || veic.combustivel || null,
-    resultado.confianca ? ('confianÃ§a ' + String(resultado.confianca).toLowerCase()) : null
+    resultado.confianca ? ('confiança ' + String(resultado.confianca).toLowerCase()) : null
   ].filter(Boolean).join(' Â· ');
 
-  document.getElementById('rVehicle').innerHTML = '<b>' + vehicleLabel + '</b>' + (subLabel ? ' Â· ' + subLabel : '');
-  document.getElementById('rFipeInfo').textContent = 'Valor Tabela FIPE: ' + (ref.price || money(valor)) + (ref.referenceMonth ? ' Â· referÃªncia ' + ref.referenceMonth : '');
+  document.getElementById('rVehicle').innerHTML = '<b>' + vehicleLabel + '</b>' + (subLabel ? ' A· ' + subLabel : '');
+  document.getElementById('rFipeInfo').textContent = 'Valor Tabela FIPE: ' + (ref.price || money(valor)) + (ref.referenceMonth ? ' A· referência ' + ref.referenceMonth : '');
   document.getElementById('rDay').innerHTML = money(daily) + ' <span>por dia</span>';
-  document.getElementById('rSub').textContent = 'â‰ˆ ' + money(monthly) + ' por mÃªs Â· estimativa de ' + (rate * 100).toFixed(1).replace('.', ',') + '% do valor do veÃ­culo ao ano';
+  document.getElementById('rSub').textContent = 'â‰ˆ ' + money(monthly) + ' por mais A· estimativa de ' + (rate * 100).toFixed(1).replace('.', ',') + '% do valor do veículo ao ano';
   document.getElementById('rCompare').textContent = compareLine(daily);
   document.getElementById('placeholderBox').style.display = 'none';
   document.getElementById('result').classList.add('show');
 
   const wa = document.getElementById('waBtn2');
   const consultantPhone = '5587991576311';
-  const msg = 'OlÃ¡! Simulei no site da Smart Car a placa ' + lastPlate +
-    ' (' + vehicleLabel + '), com investimento estimado de ' + money(daily) + ' por dia. Meu nome Ã© ' + LEAD.name + ', WhatsApp ' + LEAD.phone + '. Quero a cotaÃ§Ã£o exata!';
+  const msg = 'OlÃ! Simulei no site da Smart Car a placa ' + lastPlate +
+    ' (' + vehicleLabel + '), com investimento estimado de ' + money(daily) + ' por dia. Meu nome Ã© ' + LEAD.name + ', WhatsApp ' + LEAD.phone + '. Quero a cotação exata!';
   wa.disabled = false;
   wa.dataset.href = 'https://wa.me/' + consultantPhone + '?text=' + encodeURIComponent(msg);
 }
@@ -378,7 +378,7 @@ document.getElementById('gateBtn').addEventListener('click', ()=>{
 
   if(!name || !phone || !consent){
     err.style.display = 'block';
-    err.textContent = !consent ? 'Marque a autorizaÃ§Ã£o de contato para continuar.' : 'Preencha nome e WhatsApp para continuar.';
+    err.textContent = !consent ? 'Marque a autorização de contato para continuar.' : 'Preencha nome e WhatsApp para continuar.';
     return;
   }
   err.style.display = 'none';
