@@ -241,11 +241,17 @@ async function sendLeadToSheet(lead){
   }
 
   try{
+    const payload = JSON.stringify(lead);
+    if (navigator.sendBeacon) {
+      const ok = navigator.sendBeacon(APP_SCRIPT_URL, new Blob([payload], { type: 'text/plain;charset=UTF-8' }));
+      if (ok) return true;
+    }
+
     await fetch(APP_SCRIPT_URL, {
       method: 'POST',
       mode: 'no-cors',
       headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
-      body: JSON.stringify(lead)
+      body: payload
     });
     return true;
   }catch(error){
@@ -253,6 +259,10 @@ async function sendLeadToSheet(lead){
     return false;
   }
 }
+
+
+
+
 
 function hideResult(message){
   const box = document.getElementById('placeholderBox');
@@ -336,7 +346,12 @@ async function simulate(){
   try{
     // O node "Respond to Webhook" do workflow usa "allIncomingItems", então a resposta
     // vem como array — usamos o primeiro item.
-    const data = await postJSON(N8N_WEBHOOK_URL, { placa: plate });
+    const n8nUrl = N8N_WEBHOOK_URL + (N8N_WEBHOOK_URL.includes('?') ? '&' : '?') + 'placa=' + encodeURIComponent(plate);
+    const response = await fetch(n8nUrl, { method: 'GET', headers: { 'Accept': 'application/json' } });
+    const data = await response.json().catch(() => null);
+    if(!response.ok){
+      throw new Error((data && (data.detail || data.message || data.error)) || ('HTTP ' + response.status));
+    }
     const resultado = Array.isArray(data) ? data[0] : data;
 
     if(!resultado || resultado.encontrado === false){
@@ -394,6 +409,8 @@ document.getElementById('waBtn2').addEventListener('click', (e)=>{
 </script>
 </body>
 </html>
+
+
 
 
 
