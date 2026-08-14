@@ -297,17 +297,17 @@ function renderResult(resultado){
     resultado.confianca ? ('confiança ' + String(resultado.confianca).toLowerCase()) : null
   ].filter(Boolean).join(' Â· ');
 
-  document.getElementById('rVehicle').innerHTML = '<b>' + vehicleLabel + '</b>' + (subLabel ? ' A· ' + subLabel : '');
-  document.getElementById('rFipeInfo').textContent = 'Valor Tabela FIPE: ' + (ref.price || money(valor)) + (ref.referenceMonth ? ' A· referência ' + ref.referenceMonth : '');
+  document.getElementById('rVehicle').innerHTML = '<b>' + vehicleLabel + '</b>' + (subLabel ? '  ' + subLabel : '');
+  document.getElementById('rFipeInfo').textContent = 'Valor Tabela FIPE: ' + (ref.price || money(valor)) + (ref.referenceMonth ? ' · referência ' + ref.referenceMonth : '');
   document.getElementById('rDay').innerHTML = money(daily) + ' <span>por dia</span>';
-  document.getElementById('rSub').textContent = 'â‰ˆ ' + money(monthly) + ' por mais A· estimativa de ' + (rate * 100).toFixed(1).replace('.', ',') + '% do valor do veículo ao ano';
+  document.getElementById('rSub').textContent = 'â‰ˆ ' + money(monthly) + ' estimativa de ' + (rate * 100).toFixed(1).replace('.', ',') + '% do valor do veículo ao ano';
   document.getElementById('rCompare').textContent = compareLine(daily);
   document.getElementById('placeholderBox').style.display = 'none';
   document.getElementById('result').classList.add('show');
 
   const wa = document.getElementById('waBtn2');
-  const consultantPhone = '5587991576311';
-  const msg = 'OlÃ! Simulei no site da Smart Car a placa ' + lastPlate +
+  const consultantPhone = '5587996599995';
+  const msg = 'Olá! Simulei no site da Smart Car a placa ' + lastPlate +
     ' (' + vehicleLabel + '), com investimento estimado de ' + money(daily) + ' por dia. Meu nome Ã© ' + LEAD.name + ', WhatsApp ' + LEAD.phone + '. Quero a cotação exata!';
   wa.disabled = false;
   wa.dataset.href = 'https://wa.me/' + consultantPhone + '?text=' + encodeURIComponent(msg);
