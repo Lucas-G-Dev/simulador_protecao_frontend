@@ -294,7 +294,7 @@ function renderResult(resultado){
   const subLabel = [
     (ref.modelYear || veic.anoModelo) ? ('Ano ' + (ref.modelYear || veic.anoModelo)) : null,
     ref.fuel || veic.combustivel || null,
-    resultado.confianca ? ('confiança ' + String(resultado.confianca).toLowerCase()) : null
+    
   ].filter(Boolean).join(' ');
 
   document.getElementById('rVehicle').innerHTML = '<b>' + vehicleLabel + '</b>' + (subLabel ? '  ' + subLabel : '');
