@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Simulador FIPE · Quanto custa proteger seu veículo por dia?</title>
+  <title>Simulador de Custo · Quanto custa proteger seu veí­culo por dia?</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -108,7 +108,7 @@
 <div class="frame">
   <div class="card">
     <div class="card-header">
-      <div class="logo" aria-label="Smart Car Proteção Veicular">
+      <div class="logo" aria-label="Smart Car ProteÃ§Ã£o Veicular">
         <div class="logo-mark"></div>
         <div>
           <span>smartcar</span>
@@ -125,8 +125,8 @@
     <div class="card-body">
       <div class="step" id="step1">
         <div class="eyebrow">SIMULADOR SMART CAR</div>
-        <h1>Quanto custa proteger seu veículo por dia?</h1>
-        <p class="lead">Descubra o investimento estimado com base na placa do veículo. Leva menos de 1 minuto e o resultado é na hora.</p>
+        <h1>Quanto custa proteger seu veí­culo por dia?</h1>
+        <p class="lead">Descubra o investimento estimado com base na placa do veí­culo. Leva menos de 1 minuto e o resultado sai na hora.</p>
 
         <div class="field">
           <label for="gname">Nome</label>
@@ -141,27 +141,27 @@
           <input type="checkbox" id="gconsent">
           <label for="gconsent">Autorizo contato via WhatsApp com minha simulação e novidades da Smart Car.</label>
         </div>
-        <button class="btn primary" id="gateBtn">Ver meu simulador →</button>
+        <button class="btn primary" id="gateBtn">Continuar </button>
         <div class="trust">Sem compromisso. Você não paga nada por essa simulação.</div>
       </div>
 
       <div class="step" id="step2" style="display:none;">
-        <div class="back" id="backLink">← Trocar meus dados</div>
+        <div class="back" id="backLink"> Trocar meus dados</div>
         <div class="eyebrow">SIMULADOR COM CONSULTA POR PLACA</div>
         <h2 id="greeting">Vamos calcular o seu.</h2>
 
         <div class="field">
-          <label for="plateInput">Placa do veículo</label>
+          <label for="plateInput">Placa do veí­culo</label>
           <input id="plateInput" type="text" placeholder="ABC1D23" maxlength="7" autocomplete="off">
         </div>
 
-        <button class="btn primary" id="plateCalcBtn" type="button">Consultar placa e simular</button>
+        <button class="btn primary" id="plateCalcBtn" type="button">Ver meu simulador</button>
 
-        <div class="placeholder-box" id="placeholderBox">Digite a placa e clique em "Consultar placa e simular". O sistema vai buscar os dados e gerar a estimativa automaticamente.</div>
+        <div class="placeholder-box" id="placeholderBox">Digite a placa e clique em "Ver meu simulador". O sistema vai buscar os dados e gerar a estimativa automaticamente.</div>
 
         <div class="result" id="result">
-          <div class="r-vehicle" id="rVehicle"><b>—</b></div>
-          <div class="r-fipe" id="rFipeInfo">—</div>
+          <div class="r-vehicle" id="rVehicle"><b>â€”</b></div>
+          <div class="r-fipe" id="rFipeInfo">â€”</div>
           <div class="r-label">Investimento estimado</div>
           <div class="r-value" id="rDay">R$ 0,00 <span>por dia</span></div>
           <div class="r-sub" id="rSub"></div>
@@ -169,7 +169,7 @@
         </div>
 
         <button class="btn primary" id="waBtn2" disabled>Falar com um consultor</button>
-        <div class="fineprint-top" style="margin-top:12px;">Estimativa acadêmica gerada a partir da consulta por placa. O valor final pode variar na análise comercial.</div>
+        <div class="fineprint-top" style="margin-top:12px;">Estimativa gerada a partir da consulta por placa. O valor final pode variar na análise comercial.</div>
       </div>
     </div>
   </div>
@@ -177,16 +177,40 @@
 
 <script>
 const LEAD = { name: '', phone: '' };
-const API_BASE = String((window.__ENV && window.__ENV.API_BASE) || window.SIMULADOR_API_BASE || (location.protocol === 'file:' ? 'http://127.0.0.1:8000' : '') || '').trim().replace(/\/$/, '');
+let lastPlate = '';
+
+// URL do webhook de PRODUÃ‡ÃƒO do workflow n8n "Consulta Fipe" (node Webhook, path "consultafipe").
+// Pode ser sobrescrita definindo window.SIMULADOR_WEBHOOK_URL antes deste script (ex: via /env.js).
+const N8N_WEBHOOK_URL = String(
+  (window.__ENV && window.__ENV.N8N_WEBHOOK_URL) ||
+  window.SIMULADOR_WEBHOOK_URL ||
+  'https://n8n.lucasgabriel.xyz/webhook/consultafipe'
+).trim();
+
+const APP_SCRIPT_URL = String(
+  (window.__ENV && window.__ENV.APP_SCRIPT_URL) ||
+  window.SIMULADOR_APPS_SCRIPT_URL ||
+  'https://script.google.com/macros/s/AKfycbyx5B1fPPJG6PARqgCANWDplNSzJbG-VvwgDMNGawvRKMvFtGB92sT9AHgLOb8s_Hh67Q/exec'
+).trim();
+
+// Tabela de taxa anual usada para estimar o investimento mensal a partir do valor FIPE.
+// Mesma referÃªncia jÃ¡ validada no simulador anterior (motos < R$15k: 9,613% a.a.; motos >= R$15k: 4,984% a.a.; carros: 5,387% a.a.)
+function getRate(vehicleType, valor){
+  const tipo = String(vehicleType || '').toLowerCase();
+  if(tipo === 'motos'){
+    return Number(valor) < 15000 ? 0.09613 : 0.04984;
+  }
+  return 0.05387;
+}
 
 function fmtBRL(n){
   return Number(n || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 function compareLine(daily){
-  if(daily < 2.5) return 'Menos que um pão com café da manhã';
+  if(daily < 2.5) return 'Menos que um pÃ£o com cafÃ© da manhÃ£';
   if(daily < 4) return 'Menos que um lanche na padaria';
-  if(daily < 6) return 'Menos que uma passagem de ônibus (ida e volta)';
+  if(daily < 6) return 'Menos que uma passagem de Ã´nibus (ida e volta)';
   return 'Menos que uma corrida curta de aplicativo';
 }
 
@@ -198,17 +222,36 @@ function money(value){
   return new Intl.NumberFormat('pt-BR', { style:'currency', currency:'BRL' }).format(Number(value || 0));
 }
 
-async function fetchJSON(url){
-  const res = await fetch(url);
+async function postJSON(url, body){
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
   const payload = await res.json().catch(() => null);
   if(!res.ok){
-    const detail = payload && payload.detail;
-    if (detail && typeof detail === 'object') {
-      throw new Error(detail.observacao || detail.erro || detail.message || ('HTTP ' + res.status));
-    }
-    throw new Error(detail || (payload && (payload.message || payload.error)) || ('HTTP ' + res.status));
+    throw new Error((payload && (payload.message || payload.error)) || ('HTTP ' + res.status));
   }
   return payload;
+}
+
+async function sendLeadToSheet(lead){
+  if(!APP_SCRIPT_URL){
+    return null;
+  }
+
+  try{
+    await fetch(APP_SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+      body: JSON.stringify(lead)
+    });
+    return true;
+  }catch(error){
+    console.warn('Apps Script send failed:', error);
+    return false;
+  }
 }
 
 function hideResult(message){
@@ -223,62 +266,93 @@ function hideResult(message){
   wa.dataset.href = '';
 }
 
-function renderResult(data){
-  const veiculo = data.veiculo || {};
-  const fipe = data.tabela_fipe || {};
-  const simulacao = data.simulacao || {};
-  const planos = Array.isArray(simulacao.planos) ? simulacao.planos : [];
-  const plano = simulacao.plano_recomendado || planos[1] || planos[0] || null;
-  const valor = Number(fipe.valor || 0);
-  const monthly = plano ? Number(plano.mensal || 0) : valor * 0.007;
-  const daily = monthly / 30;
-  const vehicleLabel = [veiculo.marca, veiculo.modelo].filter(Boolean).join(' ') || 'Veículo identificado';
-  const subLabel = [veiculo.ano_modelo ? ('Ano ' + veiculo.ano_modelo) : null, veiculo.combustivel || null, data.modo ? ('Modo ' + data.modo) : null].filter(Boolean).join(' · ');
+function renderResult(resultado){
+  const veic = resultado.veiculoConsultado || {};
+  const ref  = resultado.referenciaFipeUtilizada || {};
+  const valor = Number(ref.priceNumeric ?? 0);
 
-  document.getElementById('rVehicle').innerHTML = '<b>' + vehicleLabel + '</b>' + (subLabel ? ' · ' + subLabel : '');
-  document.getElementById('rFipeInfo').textContent = 'Valor consultado: ' + (fipe.texto || money(valor)) + (data.modo ? ' · modo ' + data.modo : '');
+  if(!valor){
+    hideResult('Encontramos o veÃ­culo, mas nÃ£o conseguimos obter o valor FIPE. Fale com um consultor para a cotaÃ§Ã£o exata.');
+    return;
+  }
+
+  const rate = getRate(ref.vehicleType, valor);
+  const monthly = valor * rate / 12;
+  const daily = monthly / 30;
+
+  const vehicleLabel = [veic.marca || ref.brand, veic.modelo || ref.model].filter(Boolean).join(' ') || 'VeÃ­culo identificado';
+  const subLabel = [
+    (ref.modelYear || veic.anoModelo) ? ('Ano ' + (ref.modelYear || veic.anoModelo)) : null,
+    ref.fuel || veic.combustivel || null,
+    resultado.confianca ? ('confianÃ§a ' + String(resultado.confianca).toLowerCase()) : null
+  ].filter(Boolean).join(' Â· ');
+
+  document.getElementById('rVehicle').innerHTML = '<b>' + vehicleLabel + '</b>' + (subLabel ? ' Â· ' + subLabel : '');
+  document.getElementById('rFipeInfo').textContent = 'Valor Tabela FIPE: ' + (ref.price || money(valor)) + (ref.referenceMonth ? ' Â· referÃªncia ' + ref.referenceMonth : '');
   document.getElementById('rDay').innerHTML = money(daily) + ' <span>por dia</span>';
-  document.getElementById('rSub').textContent = plano
-    ? ('Plano recomendado: ' + plano.nome + ' · franquia estimada de ' + money(plano.franquia) + ' · cerca de ' + money(plano.mensal) + ' por mês')
-    : 'Estimativa gerada automaticamente a partir do valor consultado.';
+  document.getElementById('rSub').textContent = 'â‰ˆ ' + money(monthly) + ' por mÃªs Â· estimativa de ' + (rate * 100).toFixed(1).replace('.', ',') + '% do valor do veÃ­culo ao ano';
   document.getElementById('rCompare').textContent = compareLine(daily);
   document.getElementById('placeholderBox').style.display = 'none';
   document.getElementById('result').classList.add('show');
 
   const wa = document.getElementById('waBtn2');
   const consultantPhone = '5587991576311';
-  const msg = 'Olá! Simulei no site da Smart Car a placa ' + data.placa +
-    ', com investimento estimado de ' + money(daily) + ' por dia. Meu nome é ' + LEAD.name + ', WhatsApp ' + LEAD.phone + '. Quero a cotação exata!';
+  const msg = 'OlÃ¡! Simulei no site da Smart Car a placa ' + lastPlate +
+    ' (' + vehicleLabel + '), com investimento estimado de ' + money(daily) + ' por dia. Meu nome Ã© ' + LEAD.name + ', WhatsApp ' + LEAD.phone + '. Quero a cotaÃ§Ã£o exata!';
   wa.disabled = false;
   wa.dataset.href = 'https://wa.me/' + consultantPhone + '?text=' + encodeURIComponent(msg);
 }
 
 async function simulate(){
+  const name = document.getElementById('gname').value.trim();
+  const phone = document.getElementById('gphone').value.trim();
   const plate = normalizePlate(document.getElementById('plateInput').value);
-  if(!API_BASE){
-    hideResult('Informe a URL da API para continuar.');
+
+  if(!name || !phone){
+    hideResult('Preencha nome e WhatsApp para continuar.');
     return;
   }
   if(!/^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/.test(plate)){
-    hideResult('Digite uma placa válida, por exemplo ABC1D23.');
+    hideResult('Digite uma placa vÃ¡lida, por exemplo ABC1D23.');
     return;
   }
 
   const btn = document.getElementById('plateCalcBtn');
   btn.disabled = true;
   btn.textContent = 'Consultando...';
-  document.getElementById('placeholderBox').textContent = 'Consultando a placa e gerando a simulação...';
+  document.getElementById('placeholderBox').style.display = 'block';
+  document.getElementById('placeholderBox').textContent = 'Enviando lead para a planilha e consultando a placa no workflow...';
+
+  const leadPayload = {
+    nome: name,
+    whatsapp: phone,
+    placa: plate,
+    origem: 'lp',
+    timestamp: new Date().toISOString()
+  };
+
+  const sheetPromise = sendLeadToSheet(leadPayload);
 
   try{
-    const data = await fetchJSON(API_BASE + '/api/simular/' + encodeURIComponent(plate));
-    renderResult(data);
+    // O node "Respond to Webhook" do workflow usa "allIncomingItems", então a resposta
+    // vem como array — usamos o primeiro item.
+    const data = await postJSON(N8N_WEBHOOK_URL, { placa: plate });
+    const resultado = Array.isArray(data) ? data[0] : data;
+
+    if(!resultado || resultado.encontrado === false){
+      hideResult((resultado && resultado.motivo) || 'Não localizamos esse veículo automaticamente. Confira a placa e tente novamente, ou fale com um consultor.');
+      return;
+    }
+
+    lastPlate = plate;
+    renderResult(resultado);
   }catch(error){
-    hideResult('Não foi possível consultar a placa agora. Verifique se a API está rodando e tente novamente.');
+    hideResult(error.message || 'Não foi possível consultar a placa agora. Tente novamente em instantes.');
   }finally{
+    await sheetPromise.catch(() => null);
     btn.disabled = false;
-    btn.textContent = 'Consultar placa e simular';
+    btn.textContent = 'Ver meu simulador';
   }
-}
 
 document.getElementById('gateBtn').addEventListener('click', ()=>{
   const name = document.getElementById('gname').value.trim();
@@ -288,7 +362,7 @@ document.getElementById('gateBtn').addEventListener('click', ()=>{
 
   if(!name || !phone || !consent){
     err.style.display = 'block';
-    err.textContent = !consent ? 'Marque a autorização de contato para continuar.' : 'Preencha nome e WhatsApp para continuar.';
+    err.textContent = !consent ? 'Marque a autorizaÃ§Ã£o de contato para continuar.' : 'Preencha nome e WhatsApp para continuar.';
     return;
   }
   err.style.display = 'none';
@@ -316,9 +390,9 @@ document.getElementById('waBtn2').addEventListener('click', (e)=>{
   if(href) window.open(href, '_blank', 'noopener');
 });
 
-if(!API_BASE){
-  document.getElementById('placeholderBox').textContent = 'Defina a URL da API na variável de ambiente do container para habilitar a simulação.';
-}
 </script>
 </body>
 </html>
+
+
+
