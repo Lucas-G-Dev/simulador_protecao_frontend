@@ -1,4 +1,4 @@
-﻿#!/bin/sh
+#!/bin/sh
 set -eu
 
 HTML_DIR="/usr/share/nginx/html"
