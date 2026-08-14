@@ -179,6 +179,12 @@
 const LEAD = { name: '', phone: '' };
 let lastPlate = '';
 
+const API_BASE = String(
+  (window.__ENV && window.__ENV.API_BASE) ||
+  window.SIMULADOR_API_BASE ||
+  ''
+).trim();
+
 // URL do webhook de PRODUÃ‡ÃƒO do workflow n8n "Consulta Fipe" (node Webhook, path "consultafipe").
 // Pode ser sobrescrita definindo window.SIMULADOR_WEBHOOK_URL antes deste script (ex: via /env.js).
 const N8N_WEBHOOK_URL = String(
@@ -333,26 +339,16 @@ async function simulate(){
   document.getElementById('placeholderBox').style.display = 'block';
   document.getElementById('placeholderBox').textContent = 'Buscando informações';
 
-  const leadPayload = {
-    nome: name,
-    whatsapp: phone,
-    placa: plate,
-    origem: 'lp',
-    timestamp: new Date().toISOString()
-  };
-
-  const sheetPromise = sendLeadToSheet(leadPayload);
-
   try{
-    // O node "Respond to Webhook" do workflow usa "allIncomingItems", então a resposta
-    // vem como array — usamos o primeiro item.
-    const n8nUrl = N8N_WEBHOOK_URL + (N8N_WEBHOOK_URL.includes('?') ? '&' : '?') + 'placa=' + encodeURIComponent(plate);
-    const response = await fetch(n8nUrl, { method: 'GET', headers: { 'Accept': 'application/json' } });
-    const data = await response.json().catch(() => null);
-    if(!response.ok){
-      throw new Error((data && (data.detail || data.message || data.error)) || ('HTTP ' + response.status));
+    if(!API_BASE){
+      throw new Error('API_BASE nao configurada no frontend.');
     }
-    const resultado = Array.isArray(data) ? data[0] : data;
+
+    const resultado = await postJSON(API_BASE.replace(/\/$/, '') + '/api/simulador', {
+      nome: name,
+      whatsapp: phone,
+      placa: plate
+    });
 
     if(!resultado || resultado.encontrado === false){
       hideResult((resultado && resultado.motivo) || 'Não localizamos esse veículo automaticamente. Confira a placa e tente novamente, ou fale com um consultor.');
@@ -364,7 +360,6 @@ async function simulate(){
   }catch(error){
     hideResult(error.message || 'Não foi possível consultar a placa agora. Tente novamente em instantes.');
   }finally{
-    await sheetPromise.catch(() => null);
     btn.disabled = false;
     btn.textContent = 'Ver meu simulador';
   }
